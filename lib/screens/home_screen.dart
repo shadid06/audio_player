@@ -1,9 +1,11 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:golpo/model/music_model.dart';
+import 'package:golpo/provider/view_model_provider.dart';
 import 'package:golpo/screens/player_details.dart';
 import 'package:golpo/widgets/custom_text.dart';
 import 'package:golpo/widgets/music_card.dart';
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -14,6 +16,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
+  late ViewModelProvider viewModelProvider;
   List<MusicModel> musicList = [
     MusicModel(
         title: "Allah Amr Rob",
@@ -46,17 +49,25 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    viewModelProvider = Provider.of<ViewModelProvider>(context, listen: false);
+
     audioPlayer.onPlayerStateChanged.listen((state) {
       setState(() {
         audioPlayerState = state;
         print('state: $audioPlayerState');
         if (audioPlayerState == PlayerState.COMPLETED) {
-          globalMusicIndex++;
-          setState(() {});
-          selectedMuisc = musicList[globalMusicIndex];
+          // globalMusicIndex++;
+          viewModelProvider.globalIndex++;
+          viewModelProvider.setGlobalIndex(viewModelProvider.globalIndex);
+          // setState(() {});
+          // selectedMuisc = musicList[globalMusicIndex];
+          viewModelProvider.selectedMusicProvider = viewModelProvider
+              .musicListProvider[viewModelProvider.globalIndex];
+          viewModelProvider
+              .setSelectedMusic(viewModelProvider.selectedMusicProvider);
           playMusic();
-          setState(() {});
-          print(globalMusicIndex);
+          // setState(() {});
+          print(viewModelProvider.globalIndex);
         }
       });
     });
@@ -89,7 +100,8 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Compulsory
   playMusic() async {
     // Add the parameter "isLocal: true" if you want to access a local file
-    await audioPlayer.play(selectedMuisc!.url);
+    // await audioPlayer.play(selectedMuisc!.url);
+    await audioPlayer.play(viewModelProvider.selectedMusicProvider!.url);
   }
 
   /// Compulsory
@@ -201,7 +213,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Container(
               height: 125,
               child: ListView.builder(
-                  itemCount: musicList.length,
+                  itemCount: viewModelProvider.musicListProvider.length,
                   scrollDirection: Axis.horizontal,
                   shrinkWrap: true,
                   itemExtent: 125,
@@ -209,22 +221,33 @@ class _HomeScreenState extends State<HomeScreen> {
                   itemBuilder: (context, globalMusicIndex) {
                     return GestureDetector(
                       onTap: () {
-                        setState(() {
-                          selectedMuisc = musicList[globalMusicIndex];
-                          isNavbarShow = true;
-                          // audioPlayerState == PlayerState.PLAYING
-                          //     ?
-                          // pauseMusic();
-                          playMusic();
-                        });
+                        viewModelProvider.globalIndex = globalMusicIndex;
+                        viewModelProvider
+                            .setGlobalIndex(viewModelProvider.globalIndex);
+                        viewModelProvider.selectedMusicProvider =
+                            viewModelProvider.musicListProvider[
+                                viewModelProvider.globalIndex];
+                        // selectedMuisc = musicList[globalMusicIndex];
+                        viewModelProvider.setSelectedMusic(
+                            viewModelProvider.selectedMusicProvider);
+                        isNavbarShow = true;
+                        // audioPlayerState == PlayerState.PLAYING
+                        //     ?
+                        // pauseMusic();
+                        playMusic();
+                        setState(() {});
                       },
                       child: MusicCard(
                         containerHeight: 125,
                         containerWidth: 90,
-                        title: musicList[globalMusicIndex].title,
-                        lebel: musicList[globalMusicIndex].lebel,
-                        imageUrl: musicList[globalMusicIndex].imageUrl,
-                        url: musicList[globalMusicIndex].url,
+                        title: viewModelProvider
+                            .musicListProvider[globalMusicIndex].title,
+                        lebel: viewModelProvider
+                            .musicListProvider[globalMusicIndex].lebel,
+                        imageUrl: viewModelProvider
+                            .musicListProvider[globalMusicIndex].imageUrl,
+                        url: viewModelProvider
+                            .musicListProvider[globalMusicIndex].url,
                         imageHeight: 80,
                         imagewidth: 90,
                         textColor: Colors.grey,
@@ -246,7 +269,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     isScrollControlled: true,
                     context: context,
                     builder: (context) {
-                      var sliderValue = 0.0;
+                      // var sliderValue = 0.0;
+                      // RangeValues Myheight = RangeValues(
+                      //     timeProgress.toDouble(), audioDuration.toDouble());
                       return StatefulBuilder(
                         builder: (BuildContext context, setState) => Container(
                           height: height,
@@ -270,13 +295,15 @@ class _HomeScreenState extends State<HomeScreen> {
                               title: Column(
                                 children: [
                                   CustomText(
-                                    text: selectedMuisc!.title,
+                                    text: viewModelProvider
+                                        .selectedMusicProvider!.title,
                                     fontSize: 12,
                                     fontWeight: FontWeight.w400,
                                     color: Colors.white,
                                   ),
                                   CustomText(
-                                    text: selectedMuisc!.lebel,
+                                    text: viewModelProvider
+                                        .selectedMusicProvider!.lebel,
                                     fontSize: 12,
                                     fontWeight: FontWeight.w800,
                                     color: Colors.white,
@@ -302,7 +329,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                     height: 40,
                                   ),
                                   Image.network(
-                                    selectedMuisc!.imageUrl,
+                                    viewModelProvider
+                                        .selectedMusicProvider!.imageUrl,
                                     height: height * 0.4,
                                     width: double.infinity,
                                     fit: BoxFit.cover,
@@ -319,13 +347,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           CustomText(
-                                            text: selectedMuisc!.title,
+                                            text: viewModelProvider
+                                                .selectedMusicProvider!.title,
                                             color: Colors.white,
                                             fontSize: 16,
                                             fontWeight: FontWeight.w600,
                                           ),
                                           CustomText(
-                                            text: selectedMuisc!.lebel,
+                                            text: viewModelProvider
+                                                .selectedMusicProvider!.lebel,
                                             color: Colors.grey,
                                             fontSize: 15,
                                             fontWeight: FontWeight.w600,
@@ -348,12 +378,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                     value: timeProgress.toDouble(),
                                     max: audioDuration.toDouble(),
                                     onChanged: (value) {
-                                      setState(() => sliderValue = value);
-                                      seekToSec(value.toInt());
-                                      setState;
-                                      value:
-                                      sliderValue;
-                                      setState;
+                                      setState(() {
+                                        timeProgress = value.toInt();
+                                      });
+                                      // setState(
+                                      //     () => timeProgress = value.toInt());
+                                      // setState((() => timeProgress));
+                                      seekToSec(timeProgress);
+                                      setState(() {});
+                                      // value:
+                                      // timeProgress;
+                                      // setState;
                                     },
                                     inactiveColor: Colors.grey,
                                     activeColor: Colors.white,
@@ -447,82 +482,117 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     });
               },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Container(
-                  height: 50,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    color: Colors.greenAccent,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
+              child: Consumer<ViewModelProvider>(
+                builder: ((context, viewModelProvider, child) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Container(
+                      height: 50,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.greenAccent,
+                      ),
+                      child: Column(
                         children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
-                            child: Image.network(
-                              selectedMuisc!.imageUrl,
-                              height: 50,
-                              width: 40,
-                            ),
-                          ),
-                          SizedBox(
-                            width: 5,
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          // Slider.adaptive(
+                          //   value: timeProgress.toDouble(),
+                          //   max: audioDuration.toDouble(),
+                          //   onChanged: (value) {
+                          //     setState(() {
+                          //       timeProgress = value.toInt();
+                          //     });
+                          //     // setState(
+                          //     //     () => timeProgress = value.toInt());
+                          //     // setState((() => timeProgress));
+                          //     seekToSec(timeProgress);
+                          //     setState(() {});
+                          //     // value:
+                          //     // timeProgress;
+                          //     // setState;
+                          //   },
+                          //   inactiveColor: Colors.grey,
+                          //   activeColor: Colors.white,
+                          // ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              SizedBox(
-                                height: 10,
+                              Row(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10),
+                                    child: Image.network(
+                                      // selectedMuisc!.imageUrl,
+                                      viewModelProvider
+                                          .selectedMusicProvider!.imageUrl,
+                                      height: 50,
+                                      width: 40,
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 5,
+                                  ),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                      CustomText(
+                                        // text: selectedMuisc!.title,
+                                        text: viewModelProvider
+                                            .selectedMusicProvider!.title,
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      CustomText(
+                                        // text: selectedMuisc!.lebel,
+                                        text: viewModelProvider
+                                            .selectedMusicProvider!.lebel,
+                                        color: Colors.grey,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ],
+                                  )
+                                ],
                               ),
-                              CustomText(
-                                text: selectedMuisc!.title,
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              CustomText(
-                                text: selectedMuisc!.lebel,
-                                color: Colors.grey,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.favorite_border_outlined,
+                                    color: Colors.white,
+                                    size: 30,
+                                  ),
+                                  SizedBox(
+                                    width: 12,
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      audioPlayerState == PlayerState.PLAYING
+                                          ? pauseMusic()
+                                          : playMusic();
+                                    },
+                                    child: Icon(
+                                      audioPlayerState == PlayerState.PLAYING
+                                          ? Icons.pause
+                                          : Icons.play_arrow,
+                                      color: Colors.white,
+                                      size: 30,
+                                    ),
+                                  ),
+                                ],
+                              )
                             ],
-                          )
+                          ),
                         ],
                       ),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.favorite_border_outlined,
-                            color: Colors.white,
-                            size: 30,
-                          ),
-                          SizedBox(
-                            width: 12,
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              audioPlayerState == PlayerState.PLAYING
-                                  ? pauseMusic()
-                                  : playMusic();
-                            },
-                            child: Icon(
-                              audioPlayerState == PlayerState.PLAYING
-                                  ? Icons.pause
-                                  : Icons.play_arrow,
-                              color: Colors.white,
-                              size: 30,
-                            ),
-                          ),
-                        ],
-                      )
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                }),
               ),
             ),
     );
