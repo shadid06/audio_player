@@ -25,6 +25,10 @@ class ViewModelProvider extends ChangeNotifier {
   MusicModel? selectedMusicProvider;
 
   int globalIndex = 0;
+  bool isLoop = false;
+  bool isRandom = false;
+  int prog = 0;
+  int totalDuration = 0;
 
   setGlobalIndex(index) {
     globalIndex = index;
@@ -33,6 +37,26 @@ class ViewModelProvider extends ChangeNotifier {
 
   setSelectedMusic(music) {
     selectedMusicProvider = music;
+    notifyListeners();
+  }
+
+  setIsLoop(loop) {
+    isLoop = loop;
+    notifyListeners();
+  }
+
+  setIsRandom(ran) {
+    isRandom = ran;
+    notifyListeners();
+  }
+
+  setProg(p) {
+    prog = p;
+    notifyListeners();
+  }
+
+  setTotalDuration(td) {
+    totalDuration = td;
     notifyListeners();
   }
 }
